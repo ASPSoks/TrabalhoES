@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RFB002 - Cadastro de Livro</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header><h1>RFB002 - Cadastro de Livro</h1></header>
+<div class="container">
+<div class="card">
+<div class="row">
+<div class="col">
+<label>ISBN (13 dígitos)</label>
+<input id="isbn" type="text" placeholder="978XXXXXXXXXX" maxlength="13">
+</div>
+<div class="col">
+<label>Título</label>
+<input id="titulo" type="text" placeholder="Título do livro">
+</div>
+<div class="col">
+<label>Autor(es)</label>
+<input id="autor" type="text" placeholder="Nome do autor">
+</div>
+</div>
+<div class="row">
+<div class="col">
+<label>Editora</label>
+<input id="editora" type="text" placeholder="Editora">
+</div>
+<div class="col">
+<label>Ano de Publicação</label>
+<input id="ano" type="number" min="0" max="2025" placeholder="2025">
+<div class="caption">Não pode ser futuro.</div>
+</div>
+<div class="col">
+<label>Número de Cópias</label>
+<input id="copias" type="number" min="1" value="1">
+</div>
+</div>
+<div class="actions">
+<button class="primary" onclick="salvar()">Salvar</button>
+<button class="secondary onclick="limpar()">Limpar</button>
+<a href="index.html"><button class="secondary">Voltar</button></a>
+</div>
+<hr>
+<div class="caption">Regras aplicadas: ISBN único, ano 2025, cópias ≥ 1.</div>
+</div>
+</div>
+<div id="toast" class="toast"></div>
+<script>
+const livros = new Map(); // isbn> livro
+function toast(msg) {const t = document.getElementById('toast');t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 3000);}
+function limpar(){['isbn', 'titulo', 'autor', 'editora', 'ano', 'copias'].forEach(id=>document.getElementById(id).value=''); }
+function validarCampos(data) {
+if(!/^\d{13}$/.test(data.isbn)) return "ISBN deve ter 13 dígitos numéricos (ISBN-13).";
+if(!data.titulo.trim()) return "Título é obrigatório.";
+if(!data.autor.trim()) return "Autor é obrigatório.";
+if(!data.editora.trim()) return "Editora é obrigatória.";
+const ano = Number(data.ano);
+if(!ano || ano > 2025) return "Ano inválido (não pode ser futuro).";
+const copias = Number(data.copias);
+if(!Number.isInteger(copias) || copias < 1) return "Número de cópias deve ser inteiro ≥ 1.";
+if(livros.has(data.isbn)) return "ISBN já cadastrado.";
+return null;
+}
+function salvar(){
+const data = {
+isbn: document.getElementById('isbn').value,
+titulo: document.getElementById('titulo').value,
+autor: document.getElementById('autor').value,
+editora: document.getElementById('editora').value,
+ano: document.getElementById('ano').value,
+copias: document.getElementById('copias').value
+};
+const erro = validarCampos(data);
+if(erro) return toast(erro);
+livros.set(data.isbn, data);
+toast("Livro salvo com sucesso.");
+}
+</script>
+<footer><div class="container"><a href="index.html">← Voltar ao índice</a></div></footer>
+</body>
+</html>

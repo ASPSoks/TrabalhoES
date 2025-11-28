@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RFB005 - Realizar Empréstimo</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header><h1>RFB005 - Realizar Empréstimo</h1></header>
+<div class="container">
+<div class="card">
+<h3>Identificação do Membro</h3>
+<div class="row">
+<div class="col">
+<label>Buscar Membro por Matrícula ou CPF</label>
+<input id="buscaMembro" type="text" placeholder="Matrícula ou CPF">
+</div>
+<div class="col">
+<button class="primary" style="margin-top: 30px" onclick="buscarMembro()">Buscar</button>
+</div>
+</div>
+<div id="dadosMembro" class="caption">Nenhum membro selecionado.</div>
+</div>
+<div class="card">
+<h3>Identificação do Livro</h3>
+<div class="row">
+<div class="col">
+<label>Buscar Livro por ISBN</label>
+<input id="buscaISBN" type="text" placeholder="978XXXXXXXXXX" >
+</div>
+<div class="col">
+<button class="secondary" style="margin-top: 30px" onclick="adicionarLivro()">Adicionar Livro</button>
+</div>
+</div>
+<div class="caption">Use o campo acima para adicionar títulos ao empréstimo atual.</div>
+</div>
+<div class="card">
+<h3>Livros a Emprestar</h3>
+<table class="table">
+<thead><tr><th>ISBN</th><th>Título</th><th>Autor</th><th>Disponíveis</th><th></th></tr></thead>
+<tbody id="lista"></tbody>
+</table>
+<div class="actions">
+<button class="primary" onclick="confirmar()">Confirmar Empréstimo</button>
+<button class="secondary" onclick="cancelar()">Cancelar</button>
+<a href="index.html"><button class="secondary">Voltar</button></a>
+</div>
+<div id="msg" class="caption"></div>
+</div>
+</div>
+<div id="toast" class="toast"></div>
+<script>
+const membros = [
+{id: "20230001", nome: "Ana Paula", status: "Regular", cpf: "11122233344", emprestimos: 2},
+{id:"20230002", nome: "Bruno Silva", status: "Com Pendências", cpf: "55566677788", emprestimos:1}
+];
+let livros = [
+{isbn:"9788535914849", titulo: "Dom Casmurro", autor: "Machado de Assis", copias: 3},
+{isbn:"9786555603432", titulo: "Capitães da Areia", autor: "Jorge Amado", copias: 0},
+{isbn:"9780140449334", titulo: "The Odyssey", autor: "Homer", copias: 7},
+{isbn:"9780553212419", titulo: "Pride and Prejudice", autor: "Jane Austen", copias: 5}
+];
+let membrosel = null;
+let carrinho = [];
+function toast(msg) {const t = document.getElementById('toast');t.textContent=msg;t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 3000);}
+function buscarMembro(){
+const q = document.getElementById('buscaMembro').value.trim();
+membroSel = membros.find(m => m.id===q || m.cpf===q) || null;
+const div = document.getElementById('dadosMembro');
+if(!membroSel) div.textContent = "Membro não encontrado.";
+else div.innerHTML = `<span class="badge ${membroSel.status === 'Regular' ? 'regular' : 'pending'}">${membroSel.status}</span> <strong>${membroSel.nome}</strong> (Matrícula: ${membroSel.id}, ${membroSel.emprestimos} livro(s) emprestado(s))`;
+}
+function adicionarLivro() {
+if(!membroSel) return toast("Selecione um membro primeiro.");
+const isbn = document.getElementById('buscaISBN').value.trim();
+if(!/^\d{13}$/.test(isbn)) return toast("Informe um ISBN-13 válido.");
+const livro = livros.find(l=>l.isbn===isbn);
+if(!livro) return toast("Livro não encontrado.");
+if(livro.copias < 1) return toast("Livro indisponível (sem cópias).");
+if(carrinho.length >= 5) return toast("Limite de 5 livros por empréstimo.");
+carrinho.push(livro);
+render();
+}
+function remover(idx){
+carrinho.splice(idx,1);
+render();
+}
+function render(){
+const tb = document.getElementById('lista'); tb.innerHTML="";
+carrinho.forEach((l,i) => {
+const tr = document.createElement('tr');
+tr.innerHTML = `<td><span class='code'>${l.isbn}</span></td><td>${l.titulo}</td><td>${l.autor}</td><td>${l.copias}</td><td><button class="danger" onclick="remover(${i})">Remover</button></td>`;
+tb.appendChild(tr);
+});
+document.getElementById('msg').textContent = carrinho.length ? "" : "Nenhum livro adicionado.";
+}
+function confirmar(){
+if(!membroSel) return toast("Selecione um membro.");
+if (membroSel.status!== "Regular") return toast("Membro não pode realizar empréstimo.");
+const total = membroSel.emprestimos + carrinho.length;
+if(total > 5) return toast("Limite de empréstimos excedido.");
+for(const l of carrinho) if (l.copias < 1) return toast("Livro sem cópias disponíveis.");
+carrinho.forEach(l => l.copias--);
+const hoje = new Date();
+const devolucao = new Date(hoje.getTime() + 15*24*60*60*1000);
+toast(`Empréstimo confirmado. Devolução até ${devolucao.toLocaleDateString()}.`);
+membroSel.emprestimos += carrinho.length;
+carrinho = [];
+render();
+}
+function cancelar(){
+carrinho = [];
+render();
+toast("Empréstimo cancelado.");
+}
+</script>
+<footer><div class="container"><a href="index.html">← Voltar ao índice</a></div></footer>
+</body>
+</html>

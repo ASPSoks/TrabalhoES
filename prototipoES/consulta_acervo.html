@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RFB004 - Consulta de Acervo</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header><h1>RFB004 - Consulta de Acervo</h1></header>
+<div class="container">
+<div class="card">
+<div class="toolbar">
+<input id="filtro" class="search" type="text" placeholder="Filtrar por Título, Autor ou ISBN">
+<button class="primary" onclick="buscar()">Buscar</button>
+<a href="cadastro_livro.html"><button class="secondary">Novo</button></a>
+<button class="secondary" onclick="editar()">Editar</button>
+<button class="danger" onclick="excluir()">Excluir</button>
+<a href="index.html"><button class="secondary">Voltar</button></a>
+</div>
+<table class="table">
+<thead><tr><th>ISBN</th><th>Título</th><th>Autor</th><th>Cópias Disponíveis</th></tr></thead>
+<tbody id="tbody"></tbody>
+</table>
+<div id="msg" class="caption"></div>
+</div>
+</div>
+<div id="toast" class="toast"></div>
+<script>
+let livros = [
+{isbn:"9788535914849", titulo: "Dom Casmurro", autor: "Machado de Assis", copias: 3},
+{isbn:"9786555603432", titulo: "Capitães da Areia", autor: "Jorge Amado", copias: 0},
+{isbn:"9780140449334", titulo: "The Odyssey", autor: "Homer", copias: 7},
+{isbn:"9780553212419", titulo: "Pride and Prejudice", autor: "Jane Austen", copias: 5}
+];
+let selecionado = null;
+function render(lista) {
+const tb = document.getElementById('tbody');
+tb.innerHTML = "";
+lista.forEach((l,i)=>{
+const tr = document.createElement('tr');
+tr.innerHTML = `<td><span class="code">${l.isbn}</span></td><td>${l.titulo}</td><td>${l.autor}</td><td>${l.copias}</td>`;
+tr.onclick = () => { selecionado = i; highlight(tr); };
+tb.appendChild(tr);
+});
+document.getElementById('msg').textContent = lista.length ? "" : "Nenhum livro encontrado";
+}
+function highlight(tr){
+document.querySelectorAll('tbody tr').forEach(r=>r.style.background='');
+tr.style.background = '#f1f5f9';
+}
+function normaliza(s){return (s||"").toLowerCase();}
+function buscar(){
+const termo = normaliza(document.getElementById('filtro').value);
+const res = livros.filter(l => normaliza(l.titulo).includes(termo) || normaliza(l.autor).includes(termo) || l.isbn.includes(termo));
+render(res);
+}
+function toast(msg) { const t = document.getElementById('toast');t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 3000);}
+function editar(){ if(selecionado==null) return toast("Selecione um livro."); toast("Abrindo edição (simulado)."); }
+function excluir(){ if(selecionado==null) return toast("Selecione um livro.");
+toast("Exclusão confirmada (simulado).");
+livros.splice(selecionado, 1);
+selecionado = null;
+render(livros);
+}
+document.addEventListener('DOMContentLoaded', () => {
+render(livros);
+});
+</script>
+<footer><div class="container"><a href="index.html">← Voltar ao índice</a></div></footer>
+</body>
+</html>
